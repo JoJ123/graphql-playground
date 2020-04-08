@@ -43,6 +43,7 @@ function* setQueryFacts() {
   yield delay(100)
   const session: Session = yield select(getSelectedSession)
 
+  console.log("setQueryFacts try schema fetch: ", session)
   const { schema } = yield schemaFetcher.fetch(session)
   try {
     const ast = parse(session.query)
@@ -131,6 +132,7 @@ function* getSessionWithCredentials() {
 
   return {
     endpoint: session.endpoint,
+    token: session.token,
     headers: session.headers,
     credentials: settings['request.credentials'],
   }
@@ -138,6 +140,7 @@ function* getSessionWithCredentials() {
 
 function* fetchSchemaSaga() {
   const session: Session = yield getSessionWithCredentials()
+  console.log("fetchSchemaSaga try schema fetch: ", session)
   try {
     yield schemaFetcher.fetch(session)
     yield put(
@@ -178,6 +181,7 @@ function* renewStacks() {
   const session: Session = yield select(getSelectedSession)
   const fetchSession = yield getSessionWithCredentials()
   const docs: DocsSessionState = yield select(getSessionDocsState)
+  console.log("renewStacks try schema fetch: ", fetchSession)
   const result = yield schemaFetcher.fetch(fetchSession)
   const { schema, tracingSupported } = result
   if (schema && (!lastSchema || lastSchema !== schema)) {

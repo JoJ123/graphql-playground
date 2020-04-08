@@ -7,6 +7,7 @@ import SchemaReload from './SchemaReload'
 import { createStructuredSelector } from 'reselect'
 import {
   getEndpoint,
+  getToken,
   getSelectedSession,
   getEndpointUnreachable,
   getIsPollingSchema,
@@ -16,6 +17,7 @@ import { getFixedEndpoint } from '../../../state/general/selectors'
 import * as PropTypes from 'prop-types'
 import {
   editEndpoint,
+  editToken,
   prettifyQuery,
   refetchSchema,
 } from '../../../state/sessions/actions'
@@ -26,12 +28,14 @@ import { ISettings } from '../../../types'
 
 export interface Props {
   endpoint: string
+  token: string
   shareEnabled?: boolean
   fixedEndpoint?: boolean
   isPollingSchema: boolean
   endpointUnreachable: boolean
 
   editEndpoint: (value: string) => void
+  editToken: (value: string) => void
   prettifyQuery: () => void
   openHistory: () => void
   share: () => void
@@ -54,6 +58,15 @@ class TopBar extends React.Component<Props, {}> {
       <TopBarWrapper>
         <Button onClick={this.props.prettifyQuery}>Prettify</Button>
         <Button onClick={this.openHistory}>History</Button>
+        <TokenBarWrapper>
+          Authorization: 
+          <TokenBar
+            value={this.props.token}
+            onChange={this.onChangeToken}
+            onKeyDown={this.onKeyDown}
+            onBlur={this.props.refetchSchema}
+          />
+        </TokenBarWrapper>
         <UrlBarWrapper>
           <UrlBar
             value={this.props.endpoint}
@@ -101,6 +114,9 @@ class TopBar extends React.Component<Props, {}> {
   }
   onChange = e => {
     this.props.editEndpoint(e.target.value)
+  }
+  onChangeToken = e => {
+    this.props.editToken(e.target.value)
   }
   onKeyDown = e => {
     if (e.keyCode === 13) {
@@ -153,6 +169,7 @@ class TopBar extends React.Component<Props, {}> {
 
 const mapStateToProps = createStructuredSelector({
   endpoint: getEndpoint,
+  token: getToken,
   fixedEndpoint: getFixedEndpoint,
   isPollingSchema: getIsPollingSchema,
   endpointUnreachable: getEndpointUnreachable,
@@ -163,6 +180,7 @@ export default connect(
   mapStateToProps,
   {
     editEndpoint,
+    editToken,
     prettifyQuery,
     openHistory,
     share,
@@ -215,6 +233,39 @@ const UrlBar = styled<UrlBarProps, 'input'>('input')`
   padding-left: 30px;
   font-size: 13px;
   flex: 1;
+`
+
+const TokenBar = styled<UrlBarProps, 'input'>('input')`
+  background: ${p => p.theme.editorColours.button};
+  border-radius: 4px;
+  color: ${p =>
+    p.active
+      ? p.theme.editorColours.navigationBarText
+      : p.theme.editorColours.textInactive};
+  border: 1px solid ${p => p.theme.editorColours.background};
+  padding: 6px 12px;
+  margin-left: 10px;
+  font-size: 13px;
+  width: 20%;
+  flex: 1;
+`
+
+const TokenBarWrapper = styled.div`
+  flex: 1;  
+  text-transform: uppercase;
+  font-weight: 600;
+  color: ${p => p.theme.editorColours.buttonText};
+  background: ${p => p.theme.editorColours.button};
+  border-radius: 2px;
+  flex: 0 0 auto;
+  letter-spacing: 0.53px;
+  font-size: 14px;
+  width: 30%;
+  margin-left: 6px;
+  padding-left: 6px;
+  position: relative;
+  display: flex;
+  align-items: center;
 `
 
 const UrlBarWrapper = styled.div`

@@ -30,6 +30,7 @@ import {
   getSelectedSession,
   getSessionsState,
   getParsedVariablesFromSession,
+  getToken,
 } from './selectors'
 import { SchemaFetcher } from '../../components/Playground/SchemaFetcher'
 import { getSelectedWorkspaceId, getSettings } from '../workspace/reducers'
@@ -112,6 +113,7 @@ function* runQuerySaga(action) {
   const { operationName } = action.payload
   const selectedWorkspaceId = yield select(getSelectedWorkspaceId)
   const session: Session = yield select(getSelectedSession)
+  const token: String = yield select(getToken)
   const request = {
     query: session.query,
     operationName,
@@ -127,6 +129,7 @@ function* runQuerySaga(action) {
   if (session.tracingSupported && session.responseTracingOpen) {
     headers = set(headers, 'X-Apollo-Tracing', '1')
   }
+  headers = set(headers, 'Authorization', token)
   const lol = {
     endpoint: session.endpoint,
     headers,

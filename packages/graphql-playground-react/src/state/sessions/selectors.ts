@@ -38,6 +38,7 @@ const makeSessionSelector = prop => {
 
 export const getScrollTop = makeSessionSelector('scrollTop')
 export const getEndpoint = makeSessionSelector('endpoint')
+export const getToken = makeSessionSelector('token')
 export const getQuery = makeSessionSelector('query')
 export const getFile = makeSessionSelector('file')
 export const getVariables = makeSessionSelector('variables')

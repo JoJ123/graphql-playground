@@ -40,6 +40,7 @@ function getParameterByName(name: string, uri?: string): string | null {
 
 export interface PlaygroundWrapperProps {
   endpoint?: string
+  token: string
   endpointUrl?: string
   subscriptionEndpoint?: string
   setTitle?: boolean
@@ -77,6 +78,7 @@ export interface ReduxProps {
 
 export interface State {
   endpoint: string
+  token: string
   subscriptionPrefix?: string
   subscriptionEndpoint?: string
   shareUrl?: string
@@ -114,6 +116,9 @@ class PlaygroundWrapper extends React.Component<
       props.endpointUrl ||
       getParameterByName('endpoint') ||
       location.href
+    const token =
+      props.token || 
+      getParameterByName('token')
 
     const result = this.extractEndpointAndHeaders(endpoint)
     endpoint = result.endpoint
@@ -134,6 +139,7 @@ class PlaygroundWrapper extends React.Component<
 
     return {
       endpoint: this.absolutizeUrl(endpoint),
+      token,
       platformToken:
         props.platformToken ||
         localStorage.getItem('platform-token') ||
@@ -203,6 +209,7 @@ class PlaygroundWrapper extends React.Component<
     // Reactive props (props that cause a state change upon being changed)
     if (
       nextProps.endpoint !== this.props.endpoint ||
+      nextProps.token !== this.props.token ||
       nextProps.endpointUrl !== this.props.endpointUrl ||
       nextProps.subscriptionEndpoint !== this.props.subscriptionEndpoint ||
       nextProps.configString !== this.props.configString ||
@@ -278,7 +285,8 @@ class PlaygroundWrapper extends React.Component<
       const query = getParameterByName('query')
       if (query) {
         const endpoint = getParameterByName('endpoint') || this.state.endpoint
-        this.props.injectTabs([{ query, endpoint }])
+        const token = getParameterByName('token') || this.state.token
+        this.props.injectTabs([{ query, endpoint, token }])
       } else {
         const tabsString = getParameterByName('tabs')
         if (tabsString) {
@@ -378,6 +386,7 @@ class PlaygroundWrapper extends React.Component<
               )}
             <Playground
               endpoint={this.state.endpoint}
+              token={this.state.token}
               shareEnabled={this.props.shareEnabled}
               subscriptionEndpoint={this.state.subscriptionEndpoint}
               shareUrl={this.state.shareUrl}

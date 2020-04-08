@@ -4,7 +4,7 @@ import MiddlewareApp from './components/MiddlewareApp'
 
 test('test MiddleWareApp without tabs', () => {
   const wrapper = render(
-    <MiddlewareApp setTitle={true} showNewWorkspace={false} />,
+    <MiddlewareApp token="Baerer" setTitle={true} showNewWorkspace={false} />,
   )
   expect(wrapper).toMatchSnapshot()
 })
@@ -14,17 +14,20 @@ test('test MiddleWareApp with tabs', () => {
     <MiddlewareApp
       setTitle={true}
       showNewWorkspace={false}
+      token='Baerer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       tabs={[
         {
           name: 'Tab 1',
           query: '{ users { id } }',
           endpoint: 'https://eu1.prisma.sh/public-asdf/session65/dev',
+          token: 'Baerer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
           responses: ['{}'],
         },
         {
           name: 'Tab 2',
           query: '{ users { id } }',
           endpoint: 'https://eu1.prisma.sh/public-asdf/session65/dev',
+          token: 'Baerer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         },
       ]}
     />,
@@ -37,11 +40,13 @@ test('test MiddleWareApp with one tab and click execute', () => {
     <MiddlewareApp
       setTitle={true}
       showNewWorkspace={false}
+      token='Baerer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       tabs={[
         {
           name: 'Tab 1',
           query: '{ users { id } }',
           endpoint: 'http://localhost:4000',
+          token: 'Baerer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         },
       ]}
     />,
@@ -61,6 +66,7 @@ test('test MiddleWareApp passed default headers', () => {
   const wrapper = render(
     <MiddlewareApp
       setTitle={true}
+      token='Baerer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       showNewWorkspace={false}
       headers={{ test: 'test' }}
     />,

@@ -6,6 +6,7 @@ export const {
   setOperationName,
   editHeaders,
   editEndpoint,
+  editToken,
   setVariableToType,
   setOperations,
   startQuery,
@@ -69,6 +70,7 @@ export const {
   EDIT_QUERY: query => ({ query }),
   EDIT_HEADERS: simpleAction('headers'),
   EDIT_ENDPOINT: simpleAction('endpoint'),
+  EDIT_TOKEN: simpleAction('token'),
   EDIT_VARIABLES: simpleAction('variables'),
   SET_OPERATION_NAME: simpleAction('operationName'),
   SET_VARIABLE_TO_TYPE: simpleAction('variableToType'),
@@ -131,8 +133,9 @@ export const {
   REFETCH_SCHEMA: simpleAction(),
   SET_ENDPOINT_UNREACHABLE: simpleAction('endpoint'),
   SET_SCROLL_TOP: (sessionId, scrollTop) => ({ sessionId, scrollTop }),
-  SCHEMA_FETCHING_SUCCESS: (endpoint, tracingSupported, isPollingSchema) => ({
+  SCHEMA_FETCHING_SUCCESS: (endpoint, token, tracingSupported, isPollingSchema) => ({
     endpoint,
+    token,
     tracingSupported,
     isPollingSchema,
   }),

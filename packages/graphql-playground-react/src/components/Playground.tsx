@@ -60,6 +60,7 @@ export interface Response {
 
 export interface Props {
   endpoint: string
+  token: string
   sessionEndpoint: string
   subscriptionEndpoint?: string
   projectId?: string
@@ -69,6 +70,7 @@ export interface Props {
   isEndpoint?: boolean
   isApp?: boolean
   onChangeEndpoint?: (endpoint: string) => void
+  onChangeToken?: (token: string) => void
   share?: (state: any) => void
   shareUrl?: string
   onChangeSubscriptionsEndpoint?: (endpoint: string) => void
@@ -100,7 +102,7 @@ export interface ReduxProps {
   selectPrevTab: () => void
   closeSelectedTab: () => void
   newSession: (endpoint: string, reuseHeaders: boolean) => void
-  initState: (workspaceId: string, endpoint: string) => void
+  initState: (workspaceId: string, endpoint: string, token: string) => void
   saveConfig: () => void
   saveSettings: () => void
   setTracingSupported: (value: boolean) => void
@@ -159,9 +161,11 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
       }
       this.backoff = new Backoff(async () => {
         if (first) {
+          console.log("From 2")
           await this.schemaGetter(props)
           first = false
         } else {
+          console.log("From 1")
           await this.schemaGetter()
         }
       })
@@ -178,6 +182,7 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
 
   constructor(props: Props & ReduxProps) {
     super(props)
+    console.log("props", props)
 
     this.state = {
       schema: props.schema,
@@ -195,7 +200,7 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
 
   componentWillMount() {
     // init redux
-    this.props.initState(getWorkspaceId(this.props), this.props.endpoint)
+    this.props.initState(getWorkspaceId(this.props), this.props.endpoint, this.props.token)
     this.props.setConfigString(this.props.configString)
     this.props.injectHeaders(this.props.headers, this.props.endpoint)
   }
@@ -209,30 +214,34 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
     this.mounted = true
   }
 
-  componentWillReceiveProps(nextProps: Props & ReduxProps) {
+  componentWillReceiveProps(nextProps: Props & ReduxProps) {    
     if (this.props.createApolloLink !== nextProps.createApolloLink) {
       setLinkCreator(nextProps.createApolloLink)
     }
     if (
       nextProps.headers !== this.props.headers ||
       nextProps.endpoint !== this.props.endpoint ||
+      nextProps.token !== this.props.token ||
       nextProps.workspaceName !== this.props.workspaceName ||
       nextProps.sessionHeaders !== this.props.sessionHeaders ||
       nextProps.sessionEndpoint !== this.props.sessionEndpoint
     ) {
+      console.log("nextProps.token", nextProps.token)
       this.getSchema(nextProps)
     }
     if (this.props.isReloadingSchema && !nextProps.isReloadingSchema) {
       setTimeout(() => {
+        console.log("isReloadingSchema", nextProps.token)
         this.getSchema(nextProps)
       })
     }
     if (
       this.props.endpoint !== nextProps.endpoint ||
+      this.props.token !== nextProps.token ||
       this.props.configPath !== nextProps.configPath ||
       nextProps.workspaceName !== this.props.workspaceName
     ) {
-      this.props.initState(getWorkspaceId(nextProps), nextProps.endpoint)
+      this.props.initState(getWorkspaceId(nextProps), nextProps.endpoint, nextProps.token)
     }
     if (this.props.subscriptionEndpoint !== nextProps.subscriptionEndpoint) {
       setSubscriptionEndpoint(nextProps.subscriptionEndpoint)
@@ -251,36 +260,42 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
   async schemaGetter(propsInput?: Props & ReduxProps) {
     const props = this.props || propsInput
     const endpoint = props.sessionEndpoint || props.endpoint
+    const token = props.token
     const currentSchema = this.state.schema
     try {
       const data = {
         endpoint,
+        token,
         headers:
           props.sessionHeaders && props.sessionHeaders.length > 0
             ? props.sessionHeaders
             : JSON.stringify(props.headers),
         credentials: props.settings['request.credentials'],
       }
-      const schema = await schemaFetcher.fetch(data)
-      schemaFetcher.subscribe(data, newSchema => {
-        if (
-          data.endpoint === this.props.endpoint ||
-          data.endpoint === this.props.sessionEndpoint
-        ) {
-          this.updateSchema(currentSchema, newSchema, props)
+      console.log("try schema fetch: ", token)
+      if (token && token !== '') {
+        console.log("schema fetch started: ", token)
+        const schema = await schemaFetcher.fetch(data)
+        schemaFetcher.subscribe(data, newSchema => {
+          if (
+            data.endpoint === this.props.endpoint ||
+            data.endpoint === this.props.sessionEndpoint
+          ) {
+            this.updateSchema(currentSchema, newSchema, props)
+          }
+        })
+        if (schema) {
+          this.updateSchema(currentSchema, schema.schema, props)
+          if (this.initialSchemaFetch) {
+            this.props.schemaFetchingSuccess(
+              data.endpoint,
+              schema.tracingSupported,
+              props.isPollingSchema,
+            )
+            this.initialSchemaFetch = false
+          }
+          this.backoff.stop()
         }
-      })
-      if (schema) {
-        this.updateSchema(currentSchema, schema.schema, props)
-        if (this.initialSchemaFetch) {
-          this.props.schemaFetchingSuccess(
-            data.endpoint,
-            schema.tracingSupported,
-            props.isPollingSchema,
-          )
-          this.initialSchemaFetch = false
-        }
-        this.backoff.stop()
       }
     } catch (e) {
       // tslint:disable-next-line

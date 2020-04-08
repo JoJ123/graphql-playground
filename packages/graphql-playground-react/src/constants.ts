@@ -131,6 +131,7 @@ export function getDefaultSession(endpoint: string) {
     variables: '',
     responses: List([]),
     endpoint,
+    token: "",
     operationName: undefined,
     hasMutation: false,
     hasSubscription: false,

@@ -5,6 +5,7 @@ import {
   editVariables,
   editHeaders,
   editEndpoint,
+  editToken,
   setEditorFlex,
   openQueryVariables,
   closeQueryVariables,
@@ -37,6 +38,7 @@ export interface SessionStateProps {
 
 export interface Tab {
   endpoint: string
+  token: string
   query: string
   name?: string
   variables?: string
@@ -48,6 +50,7 @@ export interface Tab {
 export class Session extends Record(getDefaultSession('')) {
   id: string
   endpoint: string
+  token: string
 
   query: string
   file?: string
@@ -194,6 +197,7 @@ const reducer = handleActions(
       editVariables,
       editHeaders,
       editEndpoint,
+      editToken,
       setEditorFlex,
       openQueryVariables,
       closeQueryVariables,

@@ -18,6 +18,7 @@ export interface TracingSchemaTuple {
 
 export interface SchemaFetchProps {
   endpoint: string
+  token: string
   headers?: string
 }
 
@@ -68,6 +69,7 @@ export class SchemaFetcher {
     this.linkGetter = linkGetter
   }
   async fetch(session: SchemaFetchProps) {
+    console.log("fetch: ", session)
     const hash = this.hash(session)
     const cachedSchema = this.sessionCache.get(hash)
     if (cachedSchema) {
@@ -108,11 +110,13 @@ export class SchemaFetcher {
     session: SchemaFetchProps,
   ): Promise<{ schema: GraphQLSchema; tracingSupported: boolean } | null> {
     const hash = this.hash(session)
-    const { endpoint } = session
+    const { endpoint, token } = session
     const headers = {
       ...parseHeaders(session.headers),
       'X-Apollo-Tracing': '1',
+      "Authorization": token
     }
+    console.log("Fetch schema from:", endpoint, " with ", token)
 
     const options = set(session, 'headers', headers) as any
 

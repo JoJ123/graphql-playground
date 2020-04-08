@@ -2,8 +2,7 @@ import * as React from 'react'
 import { Provider, connect } from 'react-redux'
 import createStore from '../state/createStore'
 import 'isomorphic-fetch'
-import EndpointPopup from './EndpointPopup'
-import { styled, ThemeProvider, theme as styledTheme } from '../styled'
+import { styled } from '../styled'
 import { Store } from 'redux'
 import PlaygroundWrapper from './PlaygroundWrapper'
 import { injectState } from '../state/workspace/actions'
@@ -23,6 +22,7 @@ function getParameterByName(name: string): string {
 
 export interface Props {
   endpoint?: string
+  token?: string
   subscriptionEndpoint?: string
   history?: any
   match?: any
@@ -31,6 +31,7 @@ export interface Props {
 
 export interface State {
   endpoint?: string
+  token?: string
   subscriptionEndpoint?: string
   shareUrl?: string
   loading: boolean
@@ -44,9 +45,9 @@ export interface ReduxProps {
 class GraphQLBinApp extends React.Component<Props & ReduxProps, State> {
   constructor(props: Props & ReduxProps) {
     super(props)
-
     this.state = {
       endpoint: props.endpoint,
+      token: props.token,
       subscriptionEndpoint: props.subscriptionEndpoint,
       loading: false,
       headers: props.headers || {},
@@ -73,48 +74,17 @@ class GraphQLBinApp extends React.Component<Props & ReduxProps, State> {
           loadingWrapper.remove()
         }
       }, 1000)
-
-      fetch('https://api.graphqlbin.com', {
-        method: 'post',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query ($id: String!) {
-              session(id: $id) {
-                data
-                endpoint
-              }
-            }
-          `,
-          variables: { id: this.props.match.params.id },
-        }),
-      })
-        .then(res => res.json())
-        .then(res => {
-          if (loadingWrapper) {
-            loadingWrapper.classList.add('fadeOut')
-          }
-
-          if (!res.data || res.data.session === null) {
-            location.href = `${location.origin}/v2/new`
-          }
-          const state = JSON.parse(res.data.session.data)
-          this.props.injectState(state)
-          this.setState({
-            endpoint: res.data.session.endpoint,
-            loading: false,
-          })
-        })
     }
   }
 
   render() {
-    let { endpoint, subscriptionEndpoint } = this.state
+    let { endpoint, token, subscriptionEndpoint } = this.state
     // If no  endpoint passed tries to get one from url
     if (!endpoint) {
       endpoint = getParameterByName('endpoint')
+    }
+    if (!token) {
+      token = ""
     }
     if (!subscriptionEndpoint) {
       subscriptionEndpoint = getParameterByName('subscription')
@@ -122,28 +92,16 @@ class GraphQLBinApp extends React.Component<Props & ReduxProps, State> {
 
     return (
       <Wrapper>
-        {this.state.loading ? null : !this.state.endpoint ||
-        this.state.endpoint.length === 0 ? (
-          <ThemeProvider theme={styledTheme}>
-            <EndpointPopup
-              onRequestClose={this.handleChangeEndpoint}
-              endpoint={this.state.endpoint || ''}
-            />
-          </ThemeProvider>
-        ) : (
+        {
           <PlaygroundWrapper
             endpoint={endpoint}
+            token={token}
             headers={this.state.headers}
             subscriptionEndpoint={subscriptionEndpoint}
           />
-        )}
+        }
       </Wrapper>
     )
-  }
-
-  private handleChangeEndpoint = endpoint => {
-    this.setState({ endpoint })
-    localStorage.setItem('last-endpoint', endpoint)
   }
 }
 
